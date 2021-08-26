@@ -27,6 +27,7 @@ client.registry
         ['moderation', 'Moderation'],
         ['admin', 'Admin'],
         ['misc', 'Misc'],
+        ['rainbowsix','R6 Stats']
     ])
     .registerDefaultGroups()
     .registerDefaultCommands({ 
