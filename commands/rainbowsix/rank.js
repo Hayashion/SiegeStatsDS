@@ -15,11 +15,11 @@ module.exports = class StatsCommand extends Command {
             description: 'Retrieves Rank, get userid from stats',
             aliases: [],
             examples: ['rank 0b95544b-0228-49a7-b338-6d15cfbc3d6a'],
-            format: 'rank [userid]',
+            format: 'rank [username]',
             args: [
                 {
-                    key: 'userid',
-                    prompt: 'Please Enter a **userid**:',
+                    key: 'username',
+                    prompt: 'Please Enter a **username**:',
                     type: 'string',
                     validate: length => {
                         if (length.length > 2) { return true; } else {
@@ -38,11 +38,32 @@ module.exports = class StatsCommand extends Command {
         return msglevel >= PermissionLevel;
     }
 
-    async run(message, {userid}) {
+    async run(message, {username}) {
         const r6api = new R6API({ email: Email, password: Password });
-        const resp = await r6api.getRanks('uplay', `${userid}`, { regionIds: 'all', boardIds: 'pvp_casual' })
-        const raw = resp[0].seasons["22"].regions.apac.boards.pvp_casual
-        console.log(raw);            
-    }
+        let {0:checker} = await r6api.findByUsername('uplay',`${username}`);
+        const userID = checker.userId;
+
+        let {0:resp} = await r6api.getRanks('uplay', `${userID}`, { regionIds: 'all', boardIds: 'pvp_casual' });
+        const raw = resp.seasons["22"].regions.apac.boards.pvp_casual;
+
+        const rank = resp.seasons["22"].regions.apac.boards.pvp_casual.current.name;
+        const updatetime = resp.seasons["22"].regions.apac.boards.pvp_casual.updateTime;
+        const icon = resp.seasons["22"].regions.apac.boards.pvp_casual.current.icon;
+        const embed = new Discord.MessageEmbed(
+            {
+                "title": `__**${username}**__`,
+                "description": rank,
+                "url": `https://r6.tracker.network/profile/pc/${username}`,
+                "color": null,
+                "timestamp": updatetime,
+                "thumbnail": {
+                  "url": icon
+                }
+            
+            })
+
+        return message.channel.send(embed);
+    };
+
 };
 
