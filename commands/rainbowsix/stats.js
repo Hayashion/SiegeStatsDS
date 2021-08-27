@@ -27,7 +27,7 @@ module.exports = class StatsCommand extends Command {
             args: [
                 {
                     key: 'username',
-                    prompt: 'Please Enter a **The Exact** Ubisoft Username:',
+                    prompt: 'Please Enter a Ubisoft Username:',
                     type: 'string',
                     validate: length => {
                         if (length.length > 2) { return true; } else {
@@ -47,9 +47,34 @@ module.exports = class StatsCommand extends Command {
     }
 
     async run(message, {username}) {
+        function checkFailed (response) {
+            if (response.length = 0){
+                return true;
+            }
+            else {return false};
+        }
+
+
         const r6api = new R6API({ email: Email, password: Password });
-        const resp = await r6api.findByUsername('uplay',`${username}`);
-        console.log(resp);            
+
+        //Gets Player ID by Username
+        let {0:response} = await r6api.findByUsername('uplay',`${username}`);
+        // console.log(response);
+        if (checkFailed(response)) {
+            return message.channel.send('Failed to Find User!');
+        };
+        const UserID = response.userId;
+        const Username = response.username;
+        const AvatarURL = response.avatar['146'];
+
+        //Gets Player Stats
+        response = await r6api.getStats('uplay',`${UserID}`,{categories:['pve']});
+        console.log(response);
+        if (checkFailed(response)) {
+            return message.channel.send('Something Went Wrong, Sorry!');
+        };
+        
+
 
     }
 
