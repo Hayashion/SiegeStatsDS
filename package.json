@@ -1,7 +1,7 @@
 {
-  "name": "harunakaini",
+  "name": "siegestatsds",
   "version": "1.0.0",
-  "description": "Haruna Bot for FISHnCHIPS Discord",
+  "description": "Private Discord Bot for R6 Stats",
   "main": "bot.js",
   "dependencies": {
     "canvas": "^2.8.0",
@@ -23,12 +23,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HasithaAbeysekera/HarunaKaiNi.git"
+    "url": "git+https://github.com/Hayashion/SiegeStatsDS.git"
   },
-  "author": "HolotheWise",
+  "author": "Hayashion",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/HasithaAbeysekera/HarunaKaiNi/issues"
+    "url": "https://github.com/Hayashion/SiegeStatsDS/issues"
   },
-  "homepage": "https://github.com/HasithaAbeysekera/HarunaKaiNi#readme"
+  "homepage": "https://github.com/Hayashion/SiegeStatsDS#readme"
 }
