@@ -4,6 +4,7 @@
   "description": "Haruna Bot for FISHnCHIPS Discord",
   "main": "bot.js",
   "dependencies": {
+    "canvas": "^2.8.0",
     "canvas-multiline-text": "^1.0.3",
     "discord.js": "^12.5.3",
     "discord.js-commando": "git+https://github.com/discordjs/Commando.git",
