@@ -1,15 +1,18 @@
 const { Command } = require('discord.js-commando')
 const Discord = require("discord.js");
+const R6API = require('r6api.js').default;
 const logger = require('../../util/logging');
 const apiURL = require('../../config.json').apiURL;
-const fetch = require('node-fetch');
+const Email = require('../../config.json').UBIemail;
+const Password = require('../../config.json').UBIpassword;
+// const fetch = require('node-fetch');
 
-const fetchConfig = {
-    method: 'GET',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-};
+// const fetchConfig = {
+//     method: 'GET',
+//     headers: {
+//         'Content-Type': 'application/json',
+//     },
+// };
 
 module.exports = class StatsCommand extends Command {
     constructor(client) {
@@ -43,84 +46,91 @@ module.exports = class StatsCommand extends Command {
         return msglevel >= PermissionLevel;
     }
 
-    async run(message, { username }) {
-        fetch(apiURL.concat('r6/v1/profile/PC/', `${username}`), fetchConfig)
-            .then((resp) => resp.json())
-            .then(function (data) {
-                // console.log(data)
-                const status = data.status;
-                if (status != 200) {
-                    return message.channel.send(`${status} Failed to find user!`)
-                }
-                else {
-                    const respData = data.data;
-                    const Metadata = respData.metadata
-                    const generalStats = respData.stats_general
-                    let color = Math.floor(Math.random() * 16777214) + 1;
-
-                    const embed = new Discord.MessageEmbed({
-                                "title": Metadata.user,
-                                // "description": "desc",
-                                "color": color,
-                                "fields": [
-                                    {
-                                        "name": "Overall Stats",
-                                        "value": `**Level:** ${Metadata.level} \n**K/D:** ${generalStats.kd}\n**Rank:** ${generalStats.rank.max_mmr}\n**Headshot %:** ${generalStats.headshot_kill_ratio}`
-                                    },
-                                    {
-                                        "name": `Current Season (North Star)`,
-                                        "value": `**Rank:** Silver III\n**Kills:** 234\n**Deaths**: 123\n**Winrate::** 0.87`,
-                                        "inline": true
-                                    },
-                                    {
-                                        "name": "Last Season (Crimson Heist)",
-                                        "value": "**Rank:** Silver II\n**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87",
-                                        "inline": true
-                                    },
-                                    {
-                                        "name": "Top Operators",
-                                        "value": "===================================="
-                                    },
-                                    {
-                                        "name": "Frost",
-                                        "value": "**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87\n**Headshots:** 20.87%",
-                                        "inline": true
-                                    },
-                                    {
-                                        "name": "Mute",
-                                        "value": "**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87\n**Headshots:** 20.87%",
-                                        "inline": true
-                                    },
-                                    {
-                                        "name": "Kaid",
-                                        "value": "**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87\n**Headshots:** 20.87%",
-                                        "inline": true
-                                    }
-                                ],
-                                "footer": {
-                                    "text": "Last Updated:"
-                                  },
-                                  "timestamp": `${Metadata.last_updated}`,
-                                "thumbnail": {
-                                    "url": `${Metadata.avatar_url}`
-                                }
-                        })
-
-                    // const embed = new Discord.MessageEmbed()
-                    //     .setAuthor(`${Metadata.user}`, Metadata.avatar_url)
-                    //     .setColor(color)
-                    //     .setThumbnail(Metadata.avatar_url)
-                    //     .setDescription(`Level: ${Metadata.level}`)
-
-                    logger(message.client, `Stats activated by (${message.author.tag} - ID: ${message.author.id})`);
-
-                    return message.channel.send(embed);
-                };
-            })
-            .catch(err => console.log(err))
-            
+    async run(message, {username}) {
+        const r6api = new R6API({ email: Email, password: Password });
+        const resp = await r6api.findByUsername('uplay',`${username}`);
+        console.log(resp);            
 
     }
+
+    // async run(message, { username }) {
+    //     fetch(apiURL.concat('r6/v1/profile/PC/', `${username}`), fetchConfig)
+    //         .then((resp) => resp.json())
+    //         .then(function (data) {
+    //             // console.log(data)
+    //             const status = data.status;
+    //             if (status != 200) {
+    //                 return message.channel.send(`${status} Failed to find user!`)
+    //             }
+    //             else {
+    //                 const respData = data.data;
+    //                 const Metadata = respData.metadata
+    //                 const generalStats = respData.stats_general
+    //                 let color = Math.floor(Math.random() * 16777214) + 1;
+
+    //                 const embed = new Discord.MessageEmbed({
+    //                             "title": Metadata.user,
+    //                             // "description": "desc",
+    //                             "color": color,
+    //                             "fields": [
+    //                                 {
+    //                                     "name": "Overall Stats",
+    //                                     "value": `**Level:** ${Metadata.level} \n**K/D:** ${generalStats.kd}\n**Rank:** ${generalStats.rank.max_mmr}\n**Headshot %:** ${generalStats.headshot_kill_ratio}`
+    //                                 },
+    //                                 {
+    //                                     "name": `Current Season (North Star)`,
+    //                                     "value": `**Rank:** Silver III\n**Kills:** 234\n**Deaths**: 123\n**Winrate::** 0.87`,
+    //                                     "inline": true
+    //                                 },
+    //                                 {
+    //                                     "name": "Last Season (Crimson Heist)",
+    //                                     "value": "**Rank:** Silver II\n**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87",
+    //                                     "inline": true
+    //                                 },
+    //                                 {
+    //                                     "name": "Top Operators",
+    //                                     "value": "===================================="
+    //                                 },
+    //                                 {
+    //                                     "name": "Frost",
+    //                                     "value": "**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87\n**Headshots:** 20.87%",
+    //                                     "inline": true
+    //                                 },
+    //                                 {
+    //                                     "name": "Mute",
+    //                                     "value": "**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87\n**Headshots:** 20.87%",
+    //                                     "inline": true
+    //                                 },
+    //                                 {
+    //                                     "name": "Kaid",
+    //                                     "value": "**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87\n**Headshots:** 20.87%",
+    //                                     "inline": true
+    //                                 }
+    //                             ],
+    //                             "footer": {
+    //                                 "text": "Last Updated:"
+    //                               },
+    //                               "timestamp": `${Metadata.last_updated}`,
+    //                             "thumbnail": {
+    //                                 "url": `${Metadata.avatar_url}`
+    //                             }
+    //                     })
+
+    //                 // const embed = new Discord.MessageEmbed()
+    //                 //     .setAuthor(`${Metadata.user}`, Metadata.avatar_url)
+    //                 //     .setColor(color)
+    //                 //     .setThumbnail(Metadata.avatar_url)
+    //                 //     .setDescription(`Level: ${Metadata.level}`)
+
+    //                 logger(message.client, `Stats activated by (${message.author.tag} - ID: ${message.author.id})`);
+
+    //                 return message.channel.send(embed);
+    //             };
+    //         })
+    //         .catch(err => console.log(err))
+            
+
+    // }
 };
 
 // if(member == ''){
