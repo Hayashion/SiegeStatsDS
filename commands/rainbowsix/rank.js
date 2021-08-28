@@ -41,6 +41,9 @@ module.exports = class StatsCommand extends Command {
     async run(message, {username}) {
         const r6api = new R6API({ email: Email, password: Password });
         let {0:checker} = await r6api.findByUsername('uplay',`${username}`);
+        if (typeof checker == 'undefined'){
+            return message.channel.send("Invalid Username");
+        }
         const userID = checker.userId;
 
         let {0:resp} = await r6api.getRanks('uplay', `${userID}`, { regionIds: 'all', boardIds: 'pvp_casual' });
