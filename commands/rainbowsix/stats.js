@@ -46,39 +46,123 @@ module.exports = class StatsCommand extends Command {
         return msglevel >= PermissionLevel;
     }
 
-    async run(message, {username}) {
-        function checkFailed (response) {
-            if (response.length = 0){
-                return true;
-            }
-            else {return false};
-        }
-
+    async run(message, { username }) {
 
         const r6api = new R6API({ email: Email, password: Password });
 
-        //Gets Player ID by Username
-        let {0:response} = await r6api.findByUsername('uplay',`${username}`);
-        // console.log(response);
-        if (checkFailed(response)) {
-            return message.channel.send('Failed to Find User!');
-        };
+        // Gets Player ID by Username
+        let { 0: response } = await r6api.findByUsername('uplay', `${username}`);
+        if (typeof response == 'undefined') {
+            return message.channel.send("Invalid Username.");
+        }
+        console.log(response.userId)
         const UserID = response.userId;
         const Username = response.username;
         const AvatarURL = response.avatar['146'];
 
-        //Gets Player Stats
-        response = await r6api.getStats('uplay',`${UserID}`,{categories:['pve']});
-        console.log(response);
-        if (checkFailed(response)) {
-            return message.channel.send('Something Went Wrong, Sorry!');
-        };
-        
+        const allData = Promise.all([r6api.getStats('uplay', `${UserID}`), r6api.getProgression('uplay', `${UserID}`), r6api.getRanks('uplay', `${UserID}`, { seasonIds:'all', regionIds: 'all', boardIds: 'pvp_casual' })]);
+        allData.then(DATA => { // DATA = [valueOfPromise1, valueOfPromise2, ...] 
+            const [[GeneralData],[UserProgressData],[SeasonsData]] = DATA;
+            const CausalPVPData = GeneralData.pvp.general;
+            // const generalData = data[0][0].pvp.general; // FIRST [0] IS VALUE ARRAY INDEX, 2ND IS RESP FORMAT: [{ID:0,STAT}]
+            // const UserProgressData = data[1][0];
+            const CurrentSeasonID = Object.keys(SeasonsData.seasons).reverse()[0];
+            const CurrentSeasonData = SeasonsData.seasons[`${CurrentSeasonID}`];
+            const LastSeasonData = SeasonsData.seasons[`${CurrentSeasonID-1}`];
+
+            let color = Math.floor(Math.random() * 16777214) + 1;
+            const currentTime = new Date().toISOString();
+
+            console.log(CurrentSeasonData.regions.apac.boards.pvp_casual);
+
+            const embed = new Discord.MessageEmbed({
+                "title": Username,
+                "url": `https://r6.tracker.network/profile/pc/${Username}`,
+                "color": color,
+                "fields": [
+                    {
+                        "name": "Overall",
+                        "value": `**Level:** ${UserProgressData.level} \n**K/D:** ${CausalPVPData.kd}\n**Rank:** ${CurrentSeasonData.regions.apac.boards.pvp_casual.current.name}\n**Headshot Rate:** ${parseFloat(CausalPVPData.headshots / CausalPVPData.kills * 100).toFixed(2)}%`
+                    },
+                    {
+                        "name": `Casual PVP`,
+                        "value": `====================================`,
+                        "inline": false
+                    },
+                    {
+                        "name": `Current Season | ${CurrentSeasonData.seasonName}`,
+                        "value": `**Rank:** ${CurrentSeasonData.regions.apac.boards.pvp_casual.current.name}\n**K/D:** ${CurrentSeasonData.regions.apac.boards.pvp_casual.kd}\n**Winrate:** ${CurrentSeasonData.regions.apac.boards.pvp_casual.winRate}`,
+                        "inline": true
+                    },
+                    {
+                        "name": `Previous Season | ${LastSeasonData.seasonName}`,
+                        "value": `**Rank:** ${LastSeasonData.regions.apac.boards.pvp_casual.current.name}\n**K/D:** ${LastSeasonData.regions.apac.boards.pvp_casual.kd}\n**Winrate:** ${LastSeasonData.regions.apac.boards.pvp_casual.winRate}`,
+                        "inline": true
+                    },
+                    {
+                        "name": "Top Operators",
+                        "value": "===================================="
+                    },
+                    {
+                        "name": "Frost",
+                        "value": "**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87\n**Headshots:** 20.87%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Mute",
+                        "value": "**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87\n**Headshots:** 20.87%",
+                        "inline": true
+                    },
+                    {
+                        "name": "Kaid",
+                        "value": "**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87\n**Headshots:** 20.87%",
+                        "inline": true
+                    }
+                ],
+                "footer": {
+                    "text": "Last Updated:"
+                },
+                "timestamp": `${currentTime}`,
+                "thumbnail": {
+                    "url": `${AvatarURL}`
+                }
+            })
+
+            return message.channel.send(embed);
+        })
+            .catch(err => {
+                console.log(err);
+                return message.channel.send("Something went wrong.");
+            })
+
+
+
+        // Gets Player Stats
+        // response = await r6api.getStats('uplay', `${UserID}`)
+        // console.log(response)
+        // if (response.length == 0){
+        //     return message.channel.send("Something went wrong.");
+        // }
+        // const generalData = response[0].pvp.general;
+        // let color = Math.floor(Math.random() * 16777214) + 1;
+        // const currentTime = new Date().toISOString();
+
+        // Gets Player Rank & Level
+        // response = await r6api.getProgression('uplay', `${UserID}`);
+        // if (response.length == 0){
+        //     return message.channel.send("Something went wrong.");
+        // }
+        // const UserLevel = response[0].level;
+
+
+
 
 
     }
 
-    // async run(message, { username }) {
+};
+
+// async run(message, { username }) {
     //     fetch(apiURL.concat('r6/v1/profile/PC/', `${username}`), fetchConfig)
     //         .then((resp) => resp.json())
     //         .then(function (data) {
@@ -153,10 +237,9 @@ module.exports = class StatsCommand extends Command {
     //             };
     //         })
     //         .catch(err => console.log(err))
-            
+
 
     // }
-};
 
 // if(member == ''){
 //     message.channel.messages.fetch({
