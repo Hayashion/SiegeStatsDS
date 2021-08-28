@@ -64,8 +64,7 @@ module.exports = class StatsCommand extends Command {
         allData.then(DATA => { // DATA = [valueOfPromise1, valueOfPromise2, ...] 
             const [[GeneralData],[UserProgressData],[SeasonsData]] = DATA;
             const CausalPVPData = GeneralData.pvp.general;
-            // const generalData = data[0][0].pvp.general; // FIRST [0] IS VALUE ARRAY INDEX, 2ND IS RESP FORMAT: [{ID:0,STAT}]
-            // const UserProgressData = data[1][0];
+            const OperatorData = GeneralData.pvp.operators;
             const CurrentSeasonID = Object.keys(SeasonsData.seasons).reverse()[0];
             const CurrentSeasonData = SeasonsData.seasons[`${CurrentSeasonID}`];
             const LastSeasonData = SeasonsData.seasons[`${CurrentSeasonID-1}`];
@@ -73,7 +72,7 @@ module.exports = class StatsCommand extends Command {
             let color = Math.floor(Math.random() * 16777214) + 1;
             const currentTime = new Date().toISOString();
 
-            console.log(CurrentSeasonData.regions.apac.boards.pvp_casual);
+            console.log(OperatorData);
 
             const embed = new Discord.MessageEmbed({
                 "title": Username,
