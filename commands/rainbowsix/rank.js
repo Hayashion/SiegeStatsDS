@@ -50,6 +50,9 @@ module.exports = class StatsCommand extends Command {
         const raw = resp.seasons["22"].regions.apac.boards.pvp_casual;
 
         const rank = resp.seasons["22"].regions.apac.boards.pvp_casual.current.name;
+        if (rank == 'Unranked'){
+            return message.channel.send("No Data Found");
+        }
         const updatetime = resp.seasons["22"].regions.apac.boards.pvp_casual.updateTime;
         const icon = resp.seasons["22"].regions.apac.boards.pvp_casual.current.icon;
         const embed = new Discord.MessageEmbed(
