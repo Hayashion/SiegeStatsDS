@@ -60,19 +60,23 @@ module.exports = class StatsCommand extends Command {
         const Username = response.username;
         const AvatarURL = response.avatar['146'];
 
-        const allData = Promise.all([r6api.getStats('uplay', `${UserID}`), r6api.getProgression('uplay', `${UserID}`), r6api.getRanks('uplay', `${UserID}`, { seasonIds:'all', regionIds: 'all', boardIds: 'pvp_casual' })]);
+        const allData = Promise.all([r6api.getStats('uplay', `${UserID}`), r6api.getProgression('uplay', `${UserID}`), r6api.getRanks('uplay', `${UserID}`, { seasonIds: 'all', regionIds: 'all', boardIds: 'pvp_casual' })]);
         allData.then(DATA => { // DATA = [valueOfPromise1, valueOfPromise2, ...] 
-            const [[GeneralData],[UserProgressData],[SeasonsData]] = DATA;
+            const [[GeneralData], [UserProgressData], [SeasonsData]] = DATA;
             const CausalPVPData = GeneralData.pvp.general;
             const OperatorData = GeneralData.pvp.operators;
             const CurrentSeasonID = Object.keys(SeasonsData.seasons).reverse()[0];
             const CurrentSeasonData = SeasonsData.seasons[`${CurrentSeasonID}`];
-            const LastSeasonData = SeasonsData.seasons[`${CurrentSeasonID-1}`];
+            const LastSeasonData = SeasonsData.seasons[`${CurrentSeasonID - 1}`];
 
             let color = Math.floor(Math.random() * 16777214) + 1;
             const currentTime = new Date().toISOString();
 
-            console.log(OperatorData);
+            let OpDataArray = Object.values(OperatorData);
+            OpDataArray.sort((a, b) => b.playtime - a.playtime);
+            const topOperators = OpDataArray.slice(0,3);
+
+            // console.log(GeneralData.pvp.general.playtime);
 
             const embed = new Discord.MessageEmbed({
                 "title": Username,
@@ -99,24 +103,24 @@ module.exports = class StatsCommand extends Command {
                         "inline": true
                     },
                     {
-                        "name": "Top Operators",
+                        "name": "Top Operators (By Time Played)",
                         "value": "===================================="
                     },
                     {
-                        "name": "Frost",
-                        "value": "**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87\n**Headshots:** 20.87%",
+                        "name": `${topOperators[0].name}`,
+                        "value": `**Kills:** ${topOperators[0].kills}\n**Deaths**: ${topOperators[0].deaths}\n**Winrate:** ${topOperators[0].winRate}\n**Headshots:** ${parseFloat(topOperators[0].headshots / topOperators[0].kills * 100).toFixed(2)}%`,
                         "inline": true
                     },
                     {
-                        "name": "Mute",
-                        "value": "**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87\n**Headshots:** 20.87%",
+                        "name": `${topOperators[1].name}`,
+                        "value": `**Kills:** ${topOperators[1].kills}\n**Deaths**: ${topOperators[1].deaths}\n**Winrate:** ${topOperators[1].winRate}\n**Headshots:** ${parseFloat(topOperators[1].headshots / topOperators[1].kills * 100).toFixed(2)}%`,
                         "inline": true
                     },
                     {
-                        "name": "Kaid",
-                        "value": "**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87\n**Headshots:** 20.87%",
+                        "name": `${topOperators[2].name}`,
+                        "value": `**Kills:** ${topOperators[2].kills}\n**Deaths**: ${topOperators[2].deaths}\n**Winrate:** ${topOperators[2].winRate}\n**Headshots:** ${parseFloat(topOperators[2].headshots / topOperators[2].kills * 100).toFixed(2)}%`,
                         "inline": true
-                    }
+                    },
                 ],
                 "footer": {
                     "text": "Last Updated:"
@@ -126,141 +130,13 @@ module.exports = class StatsCommand extends Command {
                     "url": `${AvatarURL}`
                 }
             })
-
+            // logger(message.client, `Stats activated by (${message.author.tag} - ID: ${message.author.id})`);
             return message.channel.send(embed);
         })
             .catch(err => {
                 console.log(err);
                 return message.channel.send("Something went wrong.");
             })
-
-
-
-        // Gets Player Stats
-        // response = await r6api.getStats('uplay', `${UserID}`)
-        // console.log(response)
-        // if (response.length == 0){
-        //     return message.channel.send("Something went wrong.");
-        // }
-        // const generalData = response[0].pvp.general;
-        // let color = Math.floor(Math.random() * 16777214) + 1;
-        // const currentTime = new Date().toISOString();
-
-        // Gets Player Rank & Level
-        // response = await r6api.getProgression('uplay', `${UserID}`);
-        // if (response.length == 0){
-        //     return message.channel.send("Something went wrong.");
-        // }
-        // const UserLevel = response[0].level;
-
-
-
-
-
     }
 
 };
-
-// async run(message, { username }) {
-    //     fetch(apiURL.concat('r6/v1/profile/PC/', `${username}`), fetchConfig)
-    //         .then((resp) => resp.json())
-    //         .then(function (data) {
-    //             // console.log(data)
-    //             const status = data.status;
-    //             if (status != 200) {
-    //                 return message.channel.send(`${status} Failed to find user!`)
-    //             }
-    //             else {
-    //                 const respData = data.data;
-    //                 const Metadata = respData.metadata
-    //                 const generalStats = respData.stats_general
-    //                 let color = Math.floor(Math.random() * 16777214) + 1;
-
-    //                 const embed = new Discord.MessageEmbed({
-    //                             "title": Metadata.user,
-    //                             // "description": "desc",
-    //                             "color": color,
-    //                             "fields": [
-    //                                 {
-    //                                     "name": "Overall Stats",
-    //                                     "value": `**Level:** ${Metadata.level} \n**K/D:** ${generalStats.kd}\n**Rank:** ${generalStats.rank.max_mmr}\n**Headshot %:** ${generalStats.headshot_kill_ratio}`
-    //                                 },
-    //                                 {
-    //                                     "name": `Current Season (North Star)`,
-    //                                     "value": `**Rank:** Silver III\n**Kills:** 234\n**Deaths**: 123\n**Winrate::** 0.87`,
-    //                                     "inline": true
-    //                                 },
-    //                                 {
-    //                                     "name": "Last Season (Crimson Heist)",
-    //                                     "value": "**Rank:** Silver II\n**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87",
-    //                                     "inline": true
-    //                                 },
-    //                                 {
-    //                                     "name": "Top Operators",
-    //                                     "value": "===================================="
-    //                                 },
-    //                                 {
-    //                                     "name": "Frost",
-    //                                     "value": "**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87\n**Headshots:** 20.87%",
-    //                                     "inline": true
-    //                                 },
-    //                                 {
-    //                                     "name": "Mute",
-    //                                     "value": "**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87\n**Headshots:** 20.87%",
-    //                                     "inline": true
-    //                                 },
-    //                                 {
-    //                                     "name": "Kaid",
-    //                                     "value": "**Kills:** 234\n**Deaths**: 123\n**Winrate:** 0.87\n**Headshots:** 20.87%",
-    //                                     "inline": true
-    //                                 }
-    //                             ],
-    //                             "footer": {
-    //                                 "text": "Last Updated:"
-    //                               },
-    //                               "timestamp": `${Metadata.last_updated}`,
-    //                             "thumbnail": {
-    //                                 "url": `${Metadata.avatar_url}`
-    //                             }
-    //                     })
-
-    //                 // const embed = new Discord.MessageEmbed()
-    //                 //     .setAuthor(`${Metadata.user}`, Metadata.avatar_url)
-    //                 //     .setColor(color)
-    //                 //     .setThumbnail(Metadata.avatar_url)
-    //                 //     .setDescription(`Level: ${Metadata.level}`)
-
-    //                 logger(message.client, `Stats activated by (${message.author.tag} - ID: ${message.author.id})`);
-
-    //                 return message.channel.send(embed);
-    //             };
-    //         })
-    //         .catch(err => console.log(err))
-
-
-    // }
-
-// if(member == ''){
-//     message.channel.messages.fetch({
-//         limit: deleteAmount + 1,
-//     }).then((messages) => {
-//         message.channel.bulkDelete(messages, true).catch(error => console.log(error.stack));
-//     });
-//     message.channel.send(`Deleting last ${deleteAmount} messages...`).then(msg => {
-//         msg.edit(`Successfully deleted ${deleteAmount} messages!`);
-//     });
-
-//     logger(message.client, `Purge activated by (${message.author.tag} - ID: ${message.author.id})\n` +
-//     `Purged ${deleteAmount} messages by everyone in ${message.channel} (${message.channel.name})`);
-// } else {
-//     message.channel.messages.fetch({}).then((messages) => {
-//         let userMessages = messages.filter(m => m.author.id === member.id).array().slice(0, deleteAmount+1);
-//         message.channel.bulkDelete(userMessages, true).catch(error => console.log(error.stack));
-//     });
-//     message.channel.send(`Deleting last ${deleteAmount} messages by user mentioned: ${member}`).then(msg => {
-//         msg.edit(`Successfully deleted ${deleteAmount} messages by ${member}!`);
-//     });
-
-//     logger(message.client, `Purge activated by ${message.author} (${message.author.tag} - ID: ${message.author.id})\n` +
-//     `Purged ${deleteAmount} messages by ${member} (${member.displayName} - ID: ${member.id}) in ${message.channel} (${message.channel.name})`);
-// }
